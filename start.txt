@@ -1,0 +1,65 @@
+Учебный проект: два Java Spring Boot микросервиса взаимодействуют по HTTP с помощью WebClient, React-интерфейс показывает результат.
+
+Элементы проекта
+================
+
+1. greeting-service (порт 8081)
+   Второй микросервис. GET /api/greeting?name=Анна возвращает JSON с приветствием.
+   Исходный код: greeting-service/src/main/java/com/example/greeting/
+   Сборка: Gradle Kotlin DSL, build.gradle.kts.
+
+2. orchestrator-service (порт 8080)
+   Первый микросервис и API фронтенда. GET /api/message?name=Анна асинхронно вызывает greeting-service через Spring WebClient и возвращает его ответ.
+   WebClient создаётся в WebClientConfig.java, запрос выполняется в MessageService.java.
+   URL второго сервиса настраивается свойством clients.greeting-service.url; переменная GREETING_SERVICE_URL может его переопределить.
+   Контроллер возвращает Mono, сохраняя цепочку реактивной и неблокирующей.
+
+3. frontend (порт 5173)
+   Клиент на React, TypeScript и Vite 7. Форма вызывает GET /api/message и показывает приветствие.
+
+4. compose.yaml запускает все три приложения.
+
+Запуск Docker
+=============
+
+Из корня проекта:
+
+docker compose up --build
+
+Откройте http://localhost:5173. Остановка: Ctrl+C, затем docker compose down.
+
+Локальный запуск
+================
+
+Требуются JDK 17+, Gradle 8.10+ и Node.js 20.19+ (или 22.12+).
+
+В отдельных терминалах:
+
+cd greeting-service
+gradle bootRun
+
+cd orchestrator-service
+gradle bootRun
+
+cd frontend
+npm install
+npm run dev
+
+Проверка API
+============
+
+curl 'http://localhost:8081/api/greeting?name=Анна'
+curl 'http://localhost:8080/api/message?name=Анна'
+
+Ожидаемый JSON:
+
+{"message":"Привет, Анна! Ответ от greeting-service."}
+
+Путь запроса
+============
+
+Браузер → React/Vite → orchestrator-service → WebClient → greeting-service → ответ обратно в React.
+
+WebClient выполняет неблокирующие HTTP-запросы; контроллер возвращает Mono и не вызывает block().
+
+Стек backend: Java 17, Spring Boot, Spring WebFlux/WebClient, Gradle Kotlin DSL. Frontend: React + TypeScript + Vite 7.

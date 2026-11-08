@@ -1,0 +1,26 @@
+services:
+  greeting-service:
+    build:
+      context: ./greeting-service
+    ports:
+      - "8081:8081"
+
+  orchestrator-service:
+    build:
+      context: ./orchestrator-service
+    environment:
+      GREETING_SERVICE_URL: http://greeting-service:8081
+    ports:
+      - "8080:8080"
+    depends_on:
+      - greeting-service
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_PROXY_TARGET: http://orchestrator-service:8080
+    depends_on:
+      - orchestrator-service

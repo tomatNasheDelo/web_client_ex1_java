@@ -1,0 +1,6 @@
+server:
+  port: 8080
+
+clients:
+  greeting-service:
+    url: ${GREETING_SERVICE_URL:http://localhost:8081}
